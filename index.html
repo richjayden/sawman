@@ -1,0 +1,1602 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>SAWMAN — 목재 재단 도면</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0B0B0C;
+  --panel:#17171A;
+  --panel-2:#1E1E21;
+  --panel-3:#232326;
+  --line:#2C2C30;
+  --line-soft:#222226;
+  --text:#ECECE9;
+  --text-dim:#8E8E92;
+  --text-faint:#5C5C60;
+  --amber:#D9A441;
+  --amber-dim:#5C4520;
+  --amber-soft:rgba(217,164,65,0.12);
+  --steel:#C9CDD3;
+  --sheet:#1A1A1C;
+  --sheet-line:#3A3A3E;
+  --danger:#E5484D;
+  --ok:#4CC38A;
+  --radius:14px;
+  --radius-sm:8px;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Archivo',system-ui,sans-serif;
+  min-height:100vh;
+  overscroll-behavior-y:none;
+}
+.mono{font-family:'JetBrains Mono',monospace;}
+
+/* ===== App Shell ===== */
+#app{
+  max-width:520px;
+  margin:0 auto;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  position:relative;
+  background:
+    radial-gradient(ellipse 700px 280px at 50% 0%, rgba(217,164,65,0.05), transparent 70%),
+    var(--bg);
+}
+
+/* ===== Header ===== */
+header.topbar{
+  position:sticky; top:0; z-index:50;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:16px 18px 12px;
+  background:linear-gradient(to bottom, rgba(11,11,12,0.97), rgba(11,11,12,0.85));
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line-soft);
+}
+.brand{
+  display:flex; align-items:baseline; gap:1px;
+  font-weight:800; font-size:18px; letter-spacing:0.02em;
+}
+.brand .saw{color:var(--text);}
+.brand .man{color:var(--amber);}
+.brand .sawteeth{
+  color:var(--amber);
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:-1.1px;
+  position:relative;
+  top:2px;
+  margin:0 0.5px;
+}
+.step-pill{
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px; color:var(--text-dim);
+  background:var(--panel-2);
+  border:1px solid var(--line);
+  padding:5px 10px;
+  border-radius:20px;
+  letter-spacing:0.02em;
+}
+
+/* ===== Main scroll area ===== */
+main{
+  flex:1;
+  padding:18px 18px 140px;
+  display:flex;
+  flex-direction:column;
+  gap:22px;
+}
+
+.section-label{
+  display:flex; align-items:center; gap:10px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;
+  letter-spacing:0.14em;
+  color:var(--text-dim);
+  text-transform:uppercase;
+  margin-bottom:12px;
+}
+.section-label .num{
+  color:var(--bg);
+  background:var(--amber);
+  font-weight:700;
+  font-size:10px;
+  width:18px; height:18px;
+  border-radius:4px;
+  display:inline-flex;align-items:center;justify-content:center;
+  letter-spacing:0;
+}
+.section-label::after{
+  content:'';
+  flex:1;
+  height:1px;
+  background:var(--line-soft);
+}
+
+/* ===== Cards ===== */
+.card{
+  background:linear-gradient(180deg, var(--panel-3), var(--panel));
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:18px;
+  box-shadow:0 1px 0 rgba(255,255,255,0.02) inset, 0 12px 24px -16px rgba(0,0,0,0.6);
+}
+
+/* Sheet preset grid */
+.preset-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin-bottom:12px;
+}
+.preset-btn{
+  background:var(--panel-2);
+  border:1px solid var(--line);
+  color:var(--text);
+  border-radius:var(--radius-sm);
+  padding:12px 11px;
+  text-align:left;
+  cursor:pointer;
+  transition:border-color .15s, background .15s;
+  font-family:'Archivo',sans-serif;
+}
+.preset-btn .pname{font-size:12.5px; font-weight:600; letter-spacing:0.01em;}
+.preset-btn .pdim{font-family:'JetBrains Mono',monospace; font-size:10.5px; color:var(--text-dim); margin-top:3px; letter-spacing:0.01em;}
+.preset-btn.active{
+  border-color:var(--amber);
+  background:linear-gradient(180deg, rgba(217,164,65,0.14), rgba(217,164,65,0.03));
+}
+.preset-btn.active .pname{color:var(--amber);}
+.preset-btn:active{transform:scale(0.98);}
+
+.dim-row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+.field{
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+}
+.field label{
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;
+  color:var(--text-faint);
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+}
+.field-input-wrap{
+  position:relative;
+  display:flex;
+  align-items:center;
+}
+input[type=number], input[type=text]{
+  width:100%;
+  background:var(--panel-2);
+  border:1px solid var(--line);
+  color:var(--text);
+  font-family:'JetBrains Mono',monospace;
+  font-size:16px;
+  font-weight:600;
+  letter-spacing:0.01em;
+  padding:11px 38px 11px 12px;
+  box-shadow:inset 0 1px 2px rgba(0,0,0,0.3);
+  border-radius:var(--radius-sm);
+  outline:none;
+  transition:border-color .15s;
+  -moz-appearance:textfield;
+}
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+input:focus{border-color:var(--amber);}
+.unit-suffix{
+  position:absolute; right:12px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;
+  color:var(--text-faint);
+  pointer-events:none;
+}
+
+.unit-toggle{
+  display:flex;
+  background:var(--panel-2);
+  border:1px solid var(--line);
+  border-radius:20px;
+  padding:3px;
+  gap:2px;
+}
+.unit-toggle button{
+  flex:1;
+  background:transparent;
+  border:none;
+  color:var(--text-dim);
+  font-family:'JetBrains Mono',monospace;
+  font-size:12px;
+  font-weight:600;
+  padding:7px 0;
+  border-radius:16px;
+  cursor:pointer;
+}
+.unit-toggle button.active{
+  background:var(--amber);
+  color:#1A1308;
+}
+
+/* Sheet quantity stepper — removed, auto-calculated */
+
+/* Kerf row */
+.kerf-row{
+  display:flex; align-items:center; justify-content:space-between;
+  gap:10px;
+  margin-top:12px;
+  padding-top:12px;
+  border-top:1px dashed var(--line);
+}
+.kerf-row .field{flex:1;}
+.kerf-row input{padding:9px 38px 9px 12px; font-size:14px;}
+
+/* ===== Parts list ===== */
+.part-card{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:14px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  position:relative;
+}
+.part-card .part-top{
+  display:flex; align-items:center; gap:10px;
+}
+.part-index{
+  width:26px;height:26px;
+  border-radius:7px;
+  background:var(--panel-2);
+  border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;
+  font-weight:700;
+  color:var(--text-dim);
+  flex-shrink:0;
+}
+.part-name-input{
+  flex:1;
+  background:transparent;
+  border:none;
+  color:var(--text);
+  font-family:'Archivo',sans-serif;
+  font-size:15px;
+  font-weight:600;
+  padding:6px 0;
+  outline:none;
+}
+.part-name-input::placeholder{color:var(--text-faint); font-weight:500;}
+.part-del{
+  background:transparent;
+  border:none;
+  color:var(--text-faint);
+  font-size:18px;
+  cursor:pointer;
+  padding:4px 6px;
+  flex-shrink:0;
+}
+.part-del:active{color:var(--danger);}
+
+.part-dims{
+  display:grid;
+  grid-template-columns:1fr 1fr 64px;
+  gap:8px;
+}
+.part-dims input{padding:9px 10px; font-size:14px; text-align:center;}
+.part-dims .x-sep{
+  display:flex;align-items:center;justify-content:center;
+  color:var(--text-faint);
+  font-family:'JetBrains Mono',monospace;
+  font-size:12px;
+}
+.qty-field{position:relative;}
+.qty-field input{padding-right:10px;}
+
+.part-options{
+  display:flex; align-items:center; justify-content:space-between;
+  gap:10px;
+}
+.grain-toggle{
+  display:flex; align-items:center; gap:7px;
+  cursor:pointer;
+  user-select:none;
+}
+.grain-icon{
+  width:30px;height:22px;
+  border-radius:5px;
+  background:var(--panel-2);
+  border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+  transition:border-color .15s, background .15s;
+}
+.grain-toggle.on .grain-icon{
+  border-color:var(--amber);
+  background:rgba(217,164,65,0.1);
+}
+.grain-icon svg{width:14px;height:14px; stroke:var(--text-faint);}
+.grain-toggle.on .grain-icon svg{stroke:var(--amber);}
+.grain-text{
+  font-family:'JetBrains Mono',monospace;
+  font-size:10.5px;
+  color:var(--text-faint);
+  letter-spacing:0.02em;
+}
+.grain-toggle.on .grain-text{color:var(--amber);}
+
+.color-dot-picker{
+  display:flex; gap:6px;
+}
+.color-dot{
+  width:18px;height:18px;
+  border-radius:50%;
+  border:2px solid transparent;
+  cursor:pointer;
+}
+.color-dot.selected{border-color:#fff;}
+
+/* Add part button */
+.add-part-btn{
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  width:100%;
+  background:var(--panel-2);
+  border:1.5px dashed var(--line);
+  color:var(--text-dim);
+  font-family:'Archivo',sans-serif;
+  font-weight:600;
+  font-size:14px;
+  padding:14px;
+  border-radius:var(--radius);
+  cursor:pointer;
+  transition:border-color .15s, color .15s;
+}
+.add-part-btn:active{border-color:var(--amber); color:var(--amber);}
+
+.empty-parts{
+  text-align:center;
+  padding:30px 16px;
+  color:var(--text-faint);
+  font-size:13px;
+  line-height:1.6;
+}
+.empty-parts .ic{font-size:28px; display:block; margin-bottom:10px;}
+
+/* ===== Bottom CTA bar ===== */
+.bottom-bar{
+  position:fixed;
+  bottom:0; left:0; right:0;
+  max-width:520px;
+  margin:0 auto;
+  padding:14px 18px calc(16px + env(safe-area-inset-bottom));
+  background:linear-gradient(to top, rgba(11,11,12,1) 60%, rgba(11,11,12,0));
+  z-index:60;
+}
+.summary-strip{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:10px;
+  padding:0 4px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;
+  color:var(--text-dim);
+}
+.summary-strip b{color:var(--text); font-weight:700;}
+.calc-btn{
+  width:100%;
+  background:linear-gradient(180deg, #E2B158, var(--amber));
+  border:1px solid rgba(255,255,255,0.12);
+  color:#1A1308;
+  font-family:'Archivo',sans-serif;
+  font-weight:700;
+  font-size:15.5px;
+  letter-spacing:0.01em;
+  padding:16px;
+  border-radius:var(--radius);
+  cursor:pointer;
+  box-shadow:0 10px 24px -10px rgba(217,164,65,0.45);
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  transition:transform .1s;
+}
+.calc-btn:active{transform:scale(0.98);}
+.calc-btn:disabled{
+  background:var(--panel-2);
+  color:var(--text-faint);
+  box-shadow:none;
+  cursor:not-allowed;
+}
+
+/* ===== Results View ===== */
+#results-view{
+  display:none;
+  flex-direction:column;
+}
+#results-view.active{display:flex;}
+#input-view.hidden{display:none;}
+
+.result-header{
+  padding:16px 18px 4px;
+  display:flex; align-items:center; gap:10px;
+}
+.back-btn{
+  width:36px;height:36px;
+  border-radius:10px;
+  background:var(--panel-2);
+  border:1px solid var(--line);
+  color:var(--text);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+  flex-shrink:0;
+}
+.result-title{font-size:16px; font-weight:700;}
+.result-sub{font-size:11px; color:var(--text-faint); font-family:'JetBrains Mono',monospace;}
+
+.stats-row{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+  padding:16px 18px;
+}
+.cut-order-hint{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin:0 18px 16px;
+  padding:10px 12px;
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:var(--radius-sm);
+  font-size:11.5px;
+  color:var(--text-dim);
+  line-height:1.5;
+}
+.cut-order-badge{
+  flex-shrink:0;
+  width:16px;height:16px;
+  border-radius:50%;
+  background:var(--amber);
+  color:#1A1308;
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;
+  font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+}
+.stat-box{
+  background:linear-gradient(180deg, var(--panel-3), var(--panel));
+  border:1px solid var(--line);
+  border-radius:var(--radius-sm);
+  padding:14px 10px;
+  text-align:center;
+}
+.stat-box .stat-val{
+  font-family:'JetBrains Mono',monospace;
+  font-size:21px;
+  font-weight:700;
+  color:var(--amber);
+  letter-spacing:-0.01em;
+}
+.stat-box .stat-val.good{color:var(--ok);}
+.stat-box .stat-label{
+  font-size:9.5px;
+  color:var(--text-faint);
+  text-transform:uppercase;
+  letter-spacing:0.08em;
+  margin-top:4px;
+  font-family:'JetBrains Mono',monospace;
+}
+
+.sheets-scroll{
+  padding:4px 18px 24px;
+  display:flex;
+  flex-direction:column;
+  gap:24px;
+}
+.sheet-block{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.sheet-block-header{
+  display:flex; align-items:center; justify-content:space-between;
+}
+.sheet-block-title{
+  font-family:'JetBrains Mono',monospace;
+  font-size:12px;
+  font-weight:700;
+  color:var(--text);
+  display:flex;align-items:center;gap:8px;
+}
+.sheet-num-badge{
+  background:var(--amber);
+  color:#1A1308;
+  font-size:10px;
+  font-weight:800;
+  padding:2px 7px;
+  border-radius:5px;
+}
+.sheet-yield{
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;
+  color:var(--text-dim);
+}
+.sheet-canvas-wrap{
+  background:var(--sheet);
+  border:1px solid var(--sheet-line);
+  border-radius:var(--radius-sm);
+  padding:10px;
+  overflow:hidden;
+}
+.sheet-canvas-wrap svg{display:block; width:100%; height:auto;}
+
+.parts-legend{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+}
+.legend-chip{
+  display:flex; align-items:center; gap:6px;
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:20px;
+  padding:5px 10px 5px 6px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:10.5px;
+  color:var(--text-dim);
+}
+.legend-dot{width:9px;height:9px;border-radius:3px;flex-shrink:0;}
+
+.unplaced-warn{
+  background:rgba(255,71,71,0.08);
+  border:1px solid rgba(255,71,71,0.3);
+  border-radius:var(--radius-sm);
+  padding:12px 14px;
+  font-size:12.5px;
+  color:#ff8787;
+  line-height:1.5;
+}
+
+.result-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr 1fr;
+  gap:8px;
+  padding:0 18px 130px;
+}
+.action-btn{
+  flex:1;
+  display:flex; flex-direction:column; align-items:center; gap:6px;
+  background:var(--panel);
+  border:1px solid var(--line);
+  color:var(--text);
+  padding:14px 8px;
+  border-radius:var(--radius);
+  cursor:pointer;
+  font-family:'Archivo',sans-serif;
+  font-size:11.5px;
+  font-weight:600;
+}
+.action-btn svg{width:20px;height:20px; stroke:var(--text-dim);}
+.action-btn.primary{
+  border-color:var(--amber);
+}
+.action-btn.primary svg{stroke:var(--amber);}
+
+/* Share card (hidden, for export) */
+#share-card-export{
+  position:fixed;
+  left:-9999px;
+  top:0;
+}
+
+/* Toast */
+.toast{
+  position:fixed;
+  bottom:100px;
+  left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:var(--panel-2);
+  border:1px solid var(--line);
+  color:var(--text);
+  padding:11px 18px;
+  border-radius:30px;
+  font-size:13px;
+  font-weight:600;
+  z-index:200;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .25s, transform .25s;
+  box-shadow:0 10px 30px rgba(0,0,0,0.5);
+  white-space:nowrap;
+}
+.toast.show{
+  opacity:1;
+  transform:translateX(-50%) translateY(0);
+}
+
+::-webkit-scrollbar{width:0;height:0;}
+
+@media (min-width:521px){
+  body{background:#000;}
+  #app{
+    border-left:1px solid var(--line-soft);
+    border-right:1px solid var(--line-soft);
+    box-shadow:0 0 60px rgba(0,0,0,0.5);
+  }
+}
+
+/* ===== 인쇄 스타일 ===== */
+#print-layer{ display:none; }
+
+@media print{
+  @page{ size:A4 landscape; margin:0; }
+  body > *:not(#print-layer){ display:none !important; }
+  #print-layer{
+    display:block !important;
+    background:#fff;
+  }
+  .p-page{
+    width:297mm; height:210mm;
+    padding:10mm 12mm;
+    background:#0B0B0C !important;
+    -webkit-print-color-adjust:exact;
+    print-color-adjust:exact;
+    display:flex; flex-direction:column; gap:4mm;
+    page-break-after:always;
+    break-after:page;
+    overflow:hidden;
+    box-sizing:border-box;
+  }
+  .p-header{
+    display:flex; align-items:flex-start; justify-content:space-between;
+    flex-shrink:0;
+  }
+  .p-brand{ display:flex; align-items:baseline; }
+  .p-saw{ color:#ECECE9 !important; font-size:20pt; font-weight:800; font-family:'Archivo',sans-serif; }
+  .p-man{ color:#D9A441 !important; font-size:20pt; font-weight:800; font-family:'Archivo',sans-serif; }
+  .p-header-mid{ flex:1; padding:0 8mm; padding-top:2mm; }
+  .p-sheet-info{ font-size:8pt; color:#8E8E92 !important; font-family:'JetBrains Mono',monospace; line-height:1.8; }
+  .p-header-right{ text-align:right; }
+  .p-date{ font-size:8pt; color:#5C5C60 !important; font-family:'JetBrains Mono',monospace; }
+  .p-sheet-num{ font-size:14pt; font-weight:700; color:#D9A441 !important; font-family:'Archivo',sans-serif; letter-spacing:0.04em; }
+  .p-divider{ height:0.3mm; background:#2C2C30 !important; flex-shrink:0; }
+  .p-canvas{
+    flex:1; min-height:0;
+    background:#1A1A1C !important;
+    border-radius:3mm;
+    border:0.3mm solid #3A3A3E !important;
+    overflow:hidden;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .p-canvas svg{ width:100%; height:100%; display:block; }
+  .p-footer{ flex-shrink:0; display:flex; flex-direction:column; gap:1.5mm; }
+  .p-cut-hint{ font-size:8pt; color:#8E8E92 !important; font-family:'JetBrains Mono',monospace; }
+  .p-legend{ display:flex; flex-wrap:wrap; gap:2mm; margin-top:1mm; }
+  .p-legend-chip{ display:flex; align-items:center; gap:1.5mm; font-size:8.5pt; color:#8E8E92 !important; font-family:'JetBrains Mono',monospace; }
+  .p-legend-dot{ width:3mm; height:3mm; border-radius:1mm; flex-shrink:0; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="saw">SAW</span><span class="man">MAN</span>
+    </div>
+    <span class="step-pill" id="step-pill">01 · 원장 설정</span>
+  </header>
+
+  <main id="input-view">
+
+    <!-- 1. Sheet settings -->
+    <section>
+      <div class="section-label"><span class="num">01</span> 원장 사이즈</div>
+      <div class="card">
+        <div class="preset-grid" id="preset-grid"></div>
+        <div class="dim-row">
+          <div class="field">
+            <label>가로 (Width)</label>
+            <div class="field-input-wrap">
+              <input type="number" id="sheet-w" inputmode="decimal" value="2440">
+              <span class="unit-suffix" id="unit-suffix-w">mm</span>
+            </div>
+          </div>
+          <div class="field">
+            <label>세로 (Height)</label>
+            <div class="field-input-wrap">
+              <input type="number" id="sheet-h" inputmode="decimal" value="1220">
+              <span class="unit-suffix" id="unit-suffix-h">mm</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- sheet qty auto-calculated -->
+
+        <div class="kerf-row">
+          <div class="field">
+            <label>톱날 두께 (Kerf)</label>
+            <div class="field-input-wrap">
+              <input type="number" id="kerf" inputmode="decimal" value="3" step="0.5">
+              <span class="unit-suffix" id="unit-suffix-k">mm</span>
+            </div>
+          </div>
+          <div class="unit-toggle" id="unit-toggle" style="margin-top:18px; min-width:120px;">
+            <button data-unit="mm" class="active">mm</button>
+            <button data-unit="inch">inch</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. Parts -->
+    <section>
+      <div class="section-label"><span class="num">02</span> 필요한 부재</div>
+      <div id="parts-list" style="display:flex; flex-direction:column; gap:10px;"></div>
+      <div id="parts-empty" class="empty-parts">
+        <span class="ic">▭</span>
+        잘라낼 부재를 추가하세요.<br>가로·세로 사이즈와 수량만 입력하면 됩니다.
+      </div>
+      <button class="add-part-btn" id="add-part-btn" style="margin-top:10px;">
+        <span style="font-size:18px; line-height:1;">+</span> 부재 추가
+      </button>
+    </section>
+
+  </main>
+
+  <!-- ===== RESULTS VIEW ===== -->
+  <div id="results-view">
+    <div class="result-header">
+      <button class="back-btn" id="back-btn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <div>
+        <div class="result-title">재단 도면</div>
+        <div class="result-sub" id="result-sub-info">—</div>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-box">
+        <div class="stat-val" id="stat-sheets">0</div>
+        <div class="stat-label">필요 원장 수</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val good" id="stat-yield">0%</div>
+        <div class="stat-label">사용률</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" id="stat-parts">0</div>
+        <div class="stat-label">총 부재</div>
+      </div>
+    </div>
+
+    <div class="cut-order-hint">
+      <span class="cut-order-badge">L1</span>
+      <span class="cut-order-badge">L2</span>
+      <span class="cut-order-badge">1</span>
+      <span>립컷(L1→L2...) 순서로 세로 분리 후, 각 띠 안에서 ①②③ 순서로 크로스컷</span>
+    </div>
+
+    <div id="unplaced-section" style="padding:0 18px;"></div>
+
+    <div class="sheets-scroll" id="sheets-scroll"></div>
+
+    <div class="result-actions">
+      <button class="action-btn primary" id="export-img-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+        이미지
+      </button>
+      <button class="action-btn primary" id="export-pdf-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        PDF 출력
+      </button>
+      <button class="action-btn" id="new-plan-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        새 도면
+      </button>
+      <button class="action-btn" id="edit-back-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        수정
+      </button>
+    </div>
+  </div>
+
+  <!-- Bottom CTA only visible on input view -->
+  <div class="bottom-bar" id="bottom-bar">
+    <div class="summary-strip">
+      <span>부재 <b id="summary-part-count">0</b>종 · 총 <b id="summary-total-count">0</b>개</span>
+      <span id="summary-area">원장 <b>2440×1220</b> mm · 자동 계산</span>
+    </div>
+    <button class="calc-btn" id="calc-btn" disabled>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M3 17 L13 7 M9 3 L21 15 M13 7 L21 15 M3 17 L9 11"/></svg>
+      재단 도면 계산하기
+    </button>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+/* ============== STATE ============== */
+const state = {
+  unit:'mm',
+  sheetW:2440,
+  sheetH:1220,
+  sheetQty:999, // auto — unlimited sheets until all parts placed
+  kerf:3,
+  parts:[],
+  partIdSeed:1,
+  lastResult:null
+};
+
+const PRESETS = {
+  mm:[
+    {name:'합판 표준', dim:'1220 × 2440 mm', w:1220, h:2440},
+    {name:'자작합판(대)', dim:'1525 × 1525 mm', w:1525, h:1525},
+    {name:'MDF 표준', dim:'1220 × 2440 mm', w:1220, h:2440},
+    {name:'직접 입력', dim:'커스텀 사이즈', w:null, h:null},
+  ],
+  inch:[
+    {name:'합판 표준', dim:'48 × 96 in', w:48, h:96},
+    {name:'자작합판(대)', dim:'60 × 60 in', w:60, h:60},
+    {name:'하프시트', dim:'48 × 48 in', w:48, h:48},
+    {name:'직접 입력', dim:'커스텀 사이즈', w:null, h:null},
+  ]
+};
+
+const PART_COLORS = ['#D9A441','#6FA8C9','#8FBF8F','#C97C7C','#A89BC9','#C9A876','#7FB8B0','#B58FC9'];
+
+/* ============== INIT PRESETS ============== */
+let activePresetIdx = 0;
+
+function renderPresets(){
+  const grid = document.getElementById('preset-grid');
+  grid.innerHTML = '';
+  PRESETS[state.unit].forEach((p, i)=>{
+    const btn = document.createElement('button');
+    btn.className = 'preset-btn' + (i===activePresetIdx ? ' active':'');
+    btn.innerHTML = `<div class="pname">${p.name}</div><div class="pdim mono">${p.dim}</div>`;
+    btn.onclick = ()=>{
+      activePresetIdx = i;
+      if(p.w){
+        state.sheetW = p.w; state.sheetH = p.h;
+        document.getElementById('sheet-w').value = p.w;
+        document.getElementById('sheet-h').value = p.h;
+      }
+      renderPresets();
+      updateSummary();
+    };
+    grid.appendChild(btn);
+  });
+}
+renderPresets();
+
+/* ============== UNIT TOGGLE ============== */
+document.getElementById('unit-toggle').addEventListener('click', (e)=>{
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  const unit = btn.dataset.unit;
+  if(unit === state.unit) return;
+  document.querySelectorAll('#unit-toggle button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+
+  // convert values
+  const factor = unit==='inch' ? (1/25.4) : 25.4;
+  state.sheetW = Math.round(state.sheetW * factor * 100)/100;
+  state.sheetH = Math.round(state.sheetH * factor * 100)/100;
+  state.kerf = Math.round(state.kerf * factor * 1000)/1000;
+  state.parts.forEach(p=>{
+    p.w = Math.round(p.w * factor * 100)/100;
+    p.h = Math.round(p.h * factor * 100)/100;
+  });
+
+  state.unit = unit;
+  document.getElementById('sheet-w').value = state.sheetW;
+  document.getElementById('sheet-h').value = state.sheetH;
+  document.getElementById('kerf').value = state.kerf;
+  document.getElementById('unit-suffix-w').textContent = unit;
+  document.getElementById('unit-suffix-h').textContent = unit;
+  document.getElementById('unit-suffix-k').textContent = unit;
+  activePresetIdx = 0;
+  renderPresets();
+  renderParts();
+  updateSummary();
+});
+
+document.getElementById('sheet-w').addEventListener('input', e=>{
+  state.sheetW = parseFloat(e.target.value)||0;
+  activePresetIdx = -1; renderPresets();
+  updateSummary();
+});
+document.getElementById('sheet-h').addEventListener('input', e=>{
+  state.sheetH = parseFloat(e.target.value)||0;
+  activePresetIdx = -1; renderPresets();
+  updateSummary();
+});
+document.getElementById('kerf').addEventListener('input', e=>{
+  state.kerf = parseFloat(e.target.value)||0;
+});
+
+/* ============== SHEET QTY ============== */
+/* sheet qty is auto-calculated */
+
+/* ============== PARTS ============== */
+function addPart(){
+  state.parts.push({
+    id: state.partIdSeed++,
+    name:'',
+    w: state.unit==='mm' ? 600 : 24,
+    h: state.unit==='mm' ? 400 : 16,
+    qty: 1,
+    grain: false,
+    color: PART_COLORS[(state.parts.length) % PART_COLORS.length]
+  });
+  renderParts();
+  updateSummary();
+}
+document.getElementById('add-part-btn').onclick = addPart;
+
+function renderParts(){
+  const list = document.getElementById('parts-list');
+  const empty = document.getElementById('parts-empty');
+  list.innerHTML = '';
+  empty.style.display = state.parts.length===0 ? 'block' : 'none';
+
+  state.parts.forEach((part, idx)=>{
+    const card = document.createElement('div');
+    card.className = 'part-card';
+    card.innerHTML = `
+      <div class="part-top">
+        <div class="part-index mono">${String(idx+1).padStart(2,'0')}</div>
+        <input class="part-name-input" placeholder="부재 이름 (예: 옆판)" value="${part.name}" data-id="${part.id}" data-field="name">
+        <button class="part-del" data-id="${part.id}">✕</button>
+      </div>
+      <div class="part-dims">
+        <input type="number" inputmode="decimal" class="mono" value="${part.w}" data-id="${part.id}" data-field="w" placeholder="가로">
+        <input type="number" inputmode="decimal" class="mono" value="${part.h}" data-id="${part.id}" data-field="h" placeholder="세로">
+        <input type="number" inputmode="numeric" class="mono" value="${part.qty}" min="1" data-id="${part.id}" data-field="qty">
+      </div>
+      <div class="part-options">
+        <div class="grain-toggle ${part.grain?'on':''}" data-id="${part.id}" data-action="grain">
+          <span class="grain-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M4 12h16M4 7h16M4 17h16"/></svg>
+          </span>
+          <span class="grain-text">결고정</span>
+        </div>
+        <div class="color-dot-picker">
+          ${PART_COLORS.map(c=>`<span class="color-dot ${c===part.color?'selected':''}" style="background:${c}" data-id="${part.id}" data-color="${c}"></span>`).join('')}
+        </div>
+      </div>
+    `;
+    list.appendChild(card);
+  });
+
+  // bind events
+  list.querySelectorAll('input[data-field]').forEach(inp=>{
+    inp.addEventListener('input', e=>{
+      const id = parseInt(e.target.dataset.id);
+      const field = e.target.dataset.field;
+      const part = state.parts.find(p=>p.id===id);
+      if(!part) return;
+      if(field==='name') part.name = e.target.value;
+      else if(field==='w' || field==='h') part[field] = parseFloat(e.target.value)||0;
+      else if(field==='qty') part.qty = Math.max(1, parseInt(e.target.value)||1);
+      updateSummary();
+    });
+  });
+  list.querySelectorAll('.part-del').forEach(btn=>{
+    btn.addEventListener('click', e=>{
+      const id = parseInt(e.target.dataset.id);
+      state.parts = state.parts.filter(p=>p.id!==id);
+      renderParts();
+      updateSummary();
+    });
+  });
+  list.querySelectorAll('.grain-toggle').forEach(el=>{
+    el.addEventListener('click', e=>{
+      const id = parseInt(el.dataset.id);
+      const part = state.parts.find(p=>p.id===id);
+      part.grain = !part.grain;
+      renderParts();
+    });
+  });
+  list.querySelectorAll('.color-dot').forEach(dot=>{
+    dot.addEventListener('click', e=>{
+      const id = parseInt(dot.dataset.id);
+      const part = state.parts.find(p=>p.id===id);
+      part.color = dot.dataset.color;
+      renderParts();
+    });
+  });
+}
+
+/* ============== SUMMARY / VALIDATION ============== */
+function updateSummary(){
+  const partCount = state.parts.length;
+  const totalCount = state.parts.reduce((s,p)=>s+p.qty,0);
+  document.getElementById('summary-part-count').textContent = partCount;
+  document.getElementById('summary-total-count').textContent = totalCount;
+  document.getElementById('summary-area').innerHTML = `원장 <b>${state.sheetW}×${state.sheetH}</b> ${state.unit} · 자동 계산`;
+
+  const valid = partCount>0 && state.sheetW>0 && state.sheetH>0 &&
+    state.parts.every(p=>p.w>0 && p.h>0 && p.qty>0);
+  document.getElementById('calc-btn').disabled = !valid;
+}
+updateSummary();
+
+/* ============== GUILLOTINE PACKING ALGORITHM ============== */
+/*
+  Multi-sheet guillotine bin packing.
+  - Each sheet starts as one free rectangle.
+  - Parts sorted largest-area first (heuristic).
+  - grain=true parts cannot rotate; grain=false parts may rotate 90°.
+  - For each part instance, try every existing sheet's free rects (best-fit:
+    choose the free rect that leaves least leftover area), guillotine split
+    on placement. If none fit, open a new sheet (up to sheetQty limit from
+    state, but we allow exceeding with a warning if user under-provisioned).
+*/
+function packParts(sheetW, sheetH, kerf, partsList){
+  // ── 1. 인스턴스 생성 및 정렬 ──────────────────────────────────────────
+  let instances = [];
+  partsList.forEach(p=>{
+    for(let i=0;i<p.qty;i++){
+      instances.push({name:p.name||'부재', w:p.w, h:p.h, grain:p.grain, color:p.color});
+    }
+  });
+  // 가장 긴 변 내림차순 → 면적 내림차순 (넓고 큰 부재부터 배치)
+  instances.sort((a,b)=>
+    Math.max(b.w,b.h) - Math.max(a.w,a.h) ||
+    b.w*b.h - a.w*a.h
+  );
+
+  // ── 2. Maximal Rectangles 배치 알고리즘 ───────────────────────────────
+  // 각 빈 공간을 "최대 가능 직사각형"으로 유지.
+  // 부재를 놓을 때마다 그 영역을 모든 free rect와 교차 처리해
+  // 겹치는 부분을 제거하고 새 최대 직사각형을 추가.
+  // → 기존 길로틴보다 빈 공간 파편화가 크게 줄어들어 1판 수용률 향상.
+  const sheets = [];
+
+  function newSheet(){
+    return { freeRects:[{x:0,y:0,w:sheetW,h:sheetH}], placed:[] };
+  }
+
+  function splitFreeRects(freeRects, px, py, pw, ph){
+    // px,py,pw,ph = 방금 배치한 부재의 위치+크기 (kerf 포함 영역으로 처리)
+    const newRects = [];
+    for(const r of freeRects){
+      // 겹치지 않으면 그대로 유지
+      if(px >= r.x+r.w || px+pw <= r.x || py >= r.y+r.h || py+ph <= r.y){
+        newRects.push(r);
+        continue;
+      }
+      // 겹치는 경우: 4방향으로 잘라서 남은 부분을 최대 rect로 추가
+      // 위쪽 strip
+      if(py > r.y) newRects.push({x:r.x, y:r.y, w:r.w, h:py - r.y});
+      // 아래쪽 strip
+      if(py+ph < r.y+r.h) newRects.push({x:r.x, y:py+ph, w:r.w, h:(r.y+r.h)-(py+ph)});
+      // 왼쪽 strip
+      if(px > r.x) newRects.push({x:r.x, y:r.y, w:px - r.x, h:r.h});
+      // 오른쪽 strip
+      if(px+pw < r.x+r.w) newRects.push({x:px+pw, y:r.y, w:(r.x+r.w)-(px+pw), h:r.h});
+    }
+    // 완전히 포함된(subsumed) rect 제거: 더 큰 rect 안에 완전히 들어있으면 중복
+    return newRects.filter((a,ai)=>
+      !newRects.some((b,bi)=>
+        bi!==ai && b.x<=a.x && b.y<=a.y && b.x+b.w>=a.x+a.w && b.y+b.h>=a.y+a.h
+      )
+    );
+  }
+
+  function tryPlace(sheet, inst){
+    let best = null;
+    // 결고정 OFF면 두 방향 모두 시도, ON이면 원본 방향만
+    const orientations = [{w:inst.w, h:inst.h, rot:false}];
+    if(!inst.grain){
+      if(inst.w !== inst.h) orientations.push({w:inst.h, h:inst.w, rot:true});
+    }
+
+    for(const r of sheet.freeRects){
+      for(const o of orientations){
+        // 부재 크기 + kerf가 빈 공간에 들어가는지 확인
+        if(o.w <= r.w + 1e-6 && o.h <= r.h + 1e-6){
+          // BSSF: Best Short Side Fit — 짧은 쪽 여유가 최소인 것 우선
+          const shortSide = Math.min(r.w - o.w, r.h - o.h);
+          const longSide  = Math.max(r.w - o.w, r.h - o.h);
+          if(!best || shortSide < best.shortSide || (shortSide===best.shortSide && longSide < best.longSide)){
+            best = {x:r.x, y:r.y, w:o.w, h:o.h, rot:o.rot, shortSide, longSide};
+          }
+        }
+      }
+    }
+    return best;
+  }
+
+  instances.forEach(inst=>{
+    let placed = false;
+    for(const s of sheets){
+      const pos = tryPlace(s, inst);
+      if(pos){
+        // kerf 포함 영역으로 free rect 분할 처리
+        s.freeRects = splitFreeRects(s.freeRects, pos.x, pos.y, pos.w+kerf, pos.h+kerf);
+        s.placed.push({x:pos.x, y:pos.y, w:pos.w, h:pos.h,
+          name:inst.name, color:inst.color, rot:pos.rot,
+          origW:inst.w, origH:inst.h});
+        placed = true;
+        break;
+      }
+    }
+    if(!placed){
+      const s = newSheet();
+      sheets.push(s);
+      const pos = tryPlace(s, inst);
+      if(pos){
+        s.freeRects = splitFreeRects(s.freeRects, pos.x, pos.y, pos.w+kerf, pos.h+kerf);
+        s.placed.push({x:pos.x, y:pos.y, w:pos.w, h:pos.h,
+          name:inst.name, color:inst.color, rot:pos.rot,
+          origW:inst.w, origH:inst.h});
+      } else {
+        inst.unplaced = true;
+      }
+    }
+  });
+
+  // ── 3. 테이블쏘 컷 순서 ────────────────────────────────────────────────
+  // 실제 작업 흐름:
+  //   ① 립컷(Rip Cut): 원장을 세로 띠로 분리 — 펜스 기준, 가장 먼저
+  //   ② 크로스컷(Cross Cut): 각 띠 안에서 위→아래로 개별 부재 분리
+  //
+  // 립컷 라인 = 각 컬럼의 오른쪽 끝(x + w + kerf/2) — 도면에 시각화
+  // 컷 번호 = 전체 번호 없이 "컬럼 내 크로스컷 순서"만 부여
+  //   → 도면 상단에 L1/L2/L3 립컷 라인이 표시되고
+  //     각 부재에는 그 띠 안에서의 크로스컷 순번(1,2,3...)이 붙음
+  const COL_TOLERANCE = 30; // mm 이내는 같은 립컷 띠로 묶음
+
+  sheets.forEach(sheet=>{
+    if(!sheet.placed.length) return;
+
+    // X 기준으로 립컷 띠(band) 클러스터링
+    const bandXs = [];
+    sheet.placed.forEach(p=>{
+      if(!bandXs.some(cx=> Math.abs(cx - p.x) < COL_TOLERANCE)){
+        bandXs.push(p.x);
+      }
+    });
+    bandXs.sort((a,b)=>a-b);
+
+    // 각 부재에 띠 인덱스 부여
+    sheet.placed.forEach(p=>{
+      p._bandIdx = bandXs.findIndex(cx=> Math.abs(cx - p.x) < COL_TOLERANCE);
+    });
+
+    // 띠 내에서 Y 순으로 크로스컷 순번 부여
+    bandXs.forEach((bx, bi)=>{
+      const inBand = sheet.placed
+        .filter(p=> p._bandIdx === bi)
+        .sort((a,b)=> a.y - b.y);
+      inBand.forEach((p, yi)=>{ p.cutOrder = yi + 1; });
+    });
+
+    // 립컷 라인 좌표 계산 (각 띠의 오른쪽 경계 — 마지막 띠는 제외)
+    // 각 띠에서 가장 넓은 부재의 오른쪽 끝을 립컷 라인으로 사용
+    sheet.ripCutLines = bandXs.slice(0, -1).map((bx, bi)=>{
+      const inBand = sheet.placed.filter(p=> p._bandIdx === bi);
+      const maxRight = Math.max(...inBand.map(p=> p.x + p.w));
+      return { x: maxRight, label: `L${bi+1}`, bandIdx: bi };
+    });
+
+    // 띠 인덱스도 저장 (도면 렌더링에서 사용)
+    sheet.placed.forEach(p=>{ p._bandLabel = `L${p._bandIdx+1}`; });
+  });
+
+  const unplaced = instances.filter(i=>i.unplaced);
+  return {sheets, unplaced, sheetW, sheetH, kerf};
+}
+
+/* ============== RUN CALCULATION ============== */
+document.getElementById('calc-btn').addEventListener('click', ()=>{
+  const result = packParts(state.sheetW, state.sheetH, state.kerf, state.parts);
+  state.lastResult = result;
+  renderResults(result);
+  document.getElementById('input-view').classList.add('hidden');
+  document.getElementById('results-view').classList.add('active');
+  document.getElementById('bottom-bar').style.display = 'none';
+  window.scrollTo(0,0);
+});
+
+document.getElementById('back-btn').onclick = backToInput;
+document.getElementById('edit-back-btn').onclick = backToInput;
+function backToInput(){
+  document.getElementById('input-view').classList.remove('hidden');
+  document.getElementById('results-view').classList.remove('active');
+  document.getElementById('bottom-bar').style.display = 'block';
+  window.scrollTo(0,0);
+}
+
+/* ============== RENDER RESULTS ============== */
+function renderResults(result){
+  const {sheets, unplaced, sheetW, sheetH, kerf} = result;
+
+  document.getElementById('result-sub-info').textContent =
+    `${sheetW} × ${sheetH} ${state.unit} · kerf ${kerf}${state.unit}`;
+
+  const activeSheets = sheets.filter(s => s.placed.length > 0);
+  const totalSheetArea = activeSheets.length * sheetW * sheetH;
+  const usedArea = activeSheets.reduce((sum,s)=> sum + s.placed.reduce((a,p)=>a+p.w*p.h,0), 0);
+  const yieldPct = totalSheetArea>0 ? Math.round((usedArea/totalSheetArea)*100) : 0;
+  const totalParts = activeSheets.reduce((s,sh)=>s+sh.placed.length,0) + unplaced.length;
+
+  document.getElementById('stat-sheets').textContent = activeSheets.length;
+  document.getElementById('stat-yield').textContent = yieldPct + '%';
+  document.getElementById('stat-yield').className = 'stat-val ' + (yieldPct>=75?'good':'');
+  document.getElementById('stat-parts').textContent = totalParts;
+
+  // unplaced warning
+  const warnEl = document.getElementById('unplaced-section');
+  if(unplaced.length>0){
+    const names = [...new Set(unplaced.map(i=>i.name))].join(', ');
+    warnEl.innerHTML = `<div class="unplaced-warn">⚠ ${unplaced.length}개 부재(${names})가 배치되지 못했습니다.<br>부재 크기가 원장보다 크거나, 결고정을 끄면 배치될 수 있습니다.</div>`;
+  } else {
+    warnEl.innerHTML = '';
+  }
+
+  // sheets — 빈 시트(배치된 부재 없음)는 표시하지 않음
+  const scrollEl = document.getElementById('sheets-scroll');
+  scrollEl.innerHTML = '';
+
+  activeSheets.forEach((sheet, si)=>{
+    const sheetArea = sheetW*sheetH;
+    const used = sheet.placed.reduce((a,p)=>a+p.w*p.h,0);
+    const sy = Math.round((used/sheetArea)*100);
+
+    const block = document.createElement('div');
+    block.className = 'sheet-block';
+
+    // unique colors used on this sheet
+    const usedColors = {};
+    sheet.placed.forEach(p=>{ usedColors[p.color] = p.name||'부재'; });
+    const legendHTML = Object.entries(usedColors).map(([color,name])=>
+      `<span class="legend-chip"><span class="legend-dot" style="background:${color}"></span>${name}</span>`
+    ).join('');
+
+    block.innerHTML = `
+      <div class="sheet-block-header">
+        <div class="sheet-block-title"><span class="sheet-num-badge">SHEET ${si+1}</span></div>
+        <div class="sheet-yield mono">사용률 ${sy}%</div>
+      </div>
+      <div class="sheet-canvas-wrap" id="sheet-svg-wrap-${si}"></div>
+      <div class="parts-legend">${legendHTML}</div>
+    `;
+    scrollEl.appendChild(block);
+
+    const svgWrap = block.querySelector(`#sheet-svg-wrap-${si}`);
+    svgWrap.appendChild(buildSheetSVG(sheet, sheetW, sheetH, si));
+  });
+}
+
+function buildSheetSVG(sheet, sheetW, sheetH, sheetIdx){
+  const PAD = sheetW*0.02;
+  const vbW = sheetW + PAD*2;
+  const vbH = sheetH + PAD*2 + sheetH*0.06; // 상단 립컷 라벨 공간
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(svgNS,'svg');
+  svg.setAttribute('viewBox', `0 0 ${vbW} ${vbH}`);
+  svg.setAttribute('preserveAspectRatio','xMidYMid meet');
+
+  const LABEL_H = sheetH*0.06; // 상단 립컷 라벨 영역 높이
+  const offY = PAD + LABEL_H;  // 원장 시작 Y
+
+  const fontSize    = Math.max(sheetW,sheetH)*0.032;
+  const dimFontSize = Math.max(sheetW,sheetH)*0.023;
+  const strokeW     = Math.max(sheetW,sheetH)*0.003;
+
+  // ── 원장 치수 레이블 (원장 상단) ──
+  const dimLabel = document.createElementNS(svgNS,'text');
+  dimLabel.setAttribute('x', PAD+sheetW/2);
+  dimLabel.setAttribute('y', offY - LABEL_H*0.3);
+  dimLabel.setAttribute('text-anchor','middle');
+  dimLabel.setAttribute('fill','#6A6A68');
+  dimLabel.setAttribute('font-size', dimFontSize*0.9);
+  dimLabel.setAttribute('font-family',"'JetBrains Mono', monospace");
+  dimLabel.textContent = `${sheetW} ${state.unit}`;
+  svg.appendChild(dimLabel);
+
+  // ── 원장 외곽선 ──
+  const outline = document.createElementNS(svgNS,'rect');
+  outline.setAttribute('x', PAD); outline.setAttribute('y', offY);
+  outline.setAttribute('width', sheetW); outline.setAttribute('height', sheetH);
+  outline.setAttribute('fill','none');
+  outline.setAttribute('stroke','#4A4A4A');
+  outline.setAttribute('stroke-width', strokeW);
+  svg.appendChild(outline);
+
+  // ── 부재 박스 렌더링 ──
+  const drawOrder = [...sheet.placed].sort((a,b)=>
+    a._bandIdx - b._bandIdx || a.y - b.y
+  );
+  drawOrder.forEach((p,pi)=>{
+    const x = p.x+PAD, y = p.y+offY;
+
+    // 부재 박스
+    const rect = document.createElementNS(svgNS,'rect');
+    rect.setAttribute('x',x); rect.setAttribute('y',y);
+    rect.setAttribute('width',p.w); rect.setAttribute('height',p.h);
+    rect.setAttribute('fill', p.color+'28');
+    rect.setAttribute('stroke', p.color);
+    rect.setAttribute('stroke-width', strokeW*1.2);
+    svg.appendChild(rect);
+
+    // 회전 표시 닷
+    if(p.rot){
+      const dot = document.createElementNS(svgNS,'circle');
+      dot.setAttribute('cx', x+p.w-fontSize*0.7);
+      dot.setAttribute('cy', y+fontSize*0.7);
+      dot.setAttribute('r', fontSize*0.25);
+      dot.setAttribute('fill','#D9A441');
+      svg.appendChild(dot);
+    }
+
+    // 크로스컷 순번 배지 (좌상단 원형)
+    const badgeR = Math.max(fontSize*0.62, sheetW*0.013);
+    const badgeCx = x + badgeR + strokeW*2;
+    const badgeCy = y + badgeR + strokeW*2;
+    const badge = document.createElementNS(svgNS,'circle');
+    badge.setAttribute('cx', badgeCx); badge.setAttribute('cy', badgeCy);
+    badge.setAttribute('r', badgeR);
+    badge.setAttribute('fill', '#D9A441');
+    svg.appendChild(badge);
+    const badgeText = document.createElementNS(svgNS,'text');
+    badgeText.setAttribute('x', badgeCx);
+    badgeText.setAttribute('y', badgeCy + badgeR*0.36);
+    badgeText.setAttribute('text-anchor','middle');
+    badgeText.setAttribute('fill','#1A1308');
+    badgeText.setAttribute('font-size', badgeR*1.15);
+    badgeText.setAttribute('font-family',"'JetBrains Mono', monospace");
+    badgeText.setAttribute('font-weight','700');
+    badgeText.textContent = p.cutOrder;
+    svg.appendChild(badgeText);
+
+    // 부재 이름
+    const text = document.createElementNS(svgNS,'text');
+    text.setAttribute('x', x+p.w/2);
+    text.setAttribute('y', y+p.h/2 - dimFontSize*0.3);
+    text.setAttribute('text-anchor','middle');
+    text.setAttribute('dominant-baseline','middle');
+    text.setAttribute('fill','#F2F2F0');
+    text.setAttribute('font-size', Math.min(fontSize, p.w*0.2, p.h*0.3));
+    text.setAttribute('font-family',"'Archivo', sans-serif");
+    text.setAttribute('font-weight','600');
+    text.textContent = p.name || `부재${pi+1}`;
+    svg.appendChild(text);
+
+    // 치수
+    const dimText = document.createElementNS(svgNS,'text');
+    dimText.setAttribute('x', x+p.w/2);
+    dimText.setAttribute('y', y+p.h/2 + dimFontSize*1.4);
+    dimText.setAttribute('text-anchor','middle');
+    dimText.setAttribute('fill','#9A9A98');
+    dimText.setAttribute('font-size', Math.min(dimFontSize, p.w*0.15, p.h*0.22));
+    dimText.setAttribute('font-family',"'JetBrains Mono', monospace");
+    dimText.textContent = `${Math.round(p.origW)}×${Math.round(p.origH)}`;
+    svg.appendChild(dimText);
+  });
+
+  // ── 립컷 라인 렌더링 (부재 위에 오버레이) ──
+  if(sheet.ripCutLines && sheet.ripCutLines.length > 0){
+    sheet.ripCutLines.forEach((rc, ri)=>{
+      const lx = rc.x + PAD;
+
+      // 립컷 세로 라인 (앰버 실선 — 실제 톱이 지나가는 선)
+      const line = document.createElementNS(svgNS,'line');
+      line.setAttribute('x1', lx); line.setAttribute('y1', offY);
+      line.setAttribute('x2', lx); line.setAttribute('y2', offY+sheetH);
+      line.setAttribute('stroke','#D9A441');
+      line.setAttribute('stroke-width', strokeW*1.8);
+      line.setAttribute('stroke-dasharray', `${sheetH*0.025} ${sheetH*0.015}`);
+      line.setAttribute('opacity','0.9');
+      svg.appendChild(line);
+
+      // 상단 라벨 박스 (L1, L2...)
+      const labelW = fontSize*2.4;
+      const labelH = LABEL_H*0.6;
+      const labelX = lx - labelW/2;
+      const labelY = offY - LABEL_H*0.85;
+
+      const labelBg = document.createElementNS(svgNS,'rect');
+      labelBg.setAttribute('x', labelX); labelBg.setAttribute('y', labelY);
+      labelBg.setAttribute('width', labelW); labelBg.setAttribute('height', labelH);
+      labelBg.setAttribute('rx', labelH*0.3);
+      labelBg.setAttribute('fill','#D9A441');
+      svg.appendChild(labelBg);
+
+      const labelText = document.createElementNS(svgNS,'text');
+      labelText.setAttribute('x', lx);
+      labelText.setAttribute('y', labelY + labelH*0.68);
+      labelText.setAttribute('text-anchor','middle');
+      labelText.setAttribute('fill','#1A1308');
+      labelText.setAttribute('font-size', fontSize*0.75);
+      labelText.setAttribute('font-family',"'JetBrains Mono', monospace");
+      labelText.setAttribute('font-weight','700');
+      labelText.textContent = rc.label;
+      svg.appendChild(labelText);
+
+      // 라벨에서 원장까지 연결하는 작은 세로 선
+      const connector = document.createElementNS(svgNS,'line');
+      connector.setAttribute('x1', lx); connector.setAttribute('y1', labelY + labelH);
+      connector.setAttribute('x2', lx); connector.setAttribute('y2', offY);
+      connector.setAttribute('stroke','#D9A441');
+      connector.setAttribute('stroke-width', strokeW);
+      connector.setAttribute('opacity','0.5');
+      svg.appendChild(connector);
+    });
+  }
+
+  return svg;
+}
+
+/* ============== TOAST ============== */
+let toastTimer;
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+/* ============== EXPORT IMAGE ============== */
+document.getElementById('export-img-btn').onclick = async ()=>{
+  showToast('이미지 생성 중...');
+  try{
+    const target = document.getElementById('results-view');
+    const canvas = await html2canvas(target, {backgroundColor:'#0B0B0C', scale:2});
+    const link = document.createElement('a');
+    link.download = `SAWMAN_재단도면.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    showToast('이미지가 저장되었습니다');
+  }catch(err){
+    showToast('이미지 생성에 실패했습니다');
+  }
+};
+
+/* ============== PDF 출력 (Blob URL 방식 — 팝업차단 무관) ============== */
+document.getElementById('export-pdf-btn').onclick = ()=>{
+  if(!state.lastResult){ showToast('먼저 도면을 계산해주세요'); return; }
+
+  const {sheets, sheetW, sheetH} = state.lastResult;
+  const activeSheets = sheets.filter(s=>s.placed.length>0);
+  const today = new Date().toLocaleDateString('ko-KR');
+
+  let pagesHTML = '';
+  activeSheets.forEach((sheet, si)=>{
+    const used = sheet.placed.reduce((a,p)=>a+p.w*p.h,0);
+    const yieldPct = Math.round(used/(sheetW*sheetH)*100);
+
+    const usedColors = {};
+    sheet.placed.forEach(p=>{ usedColors[p.color] = p.name||'부재'; });
+    const legendHTML = Object.entries(usedColors).map(([color,name])=>
+      `<span class="p-chip"><span class="p-dot" style="background:${color};width:10px;height:10px;border-radius:3px;display:inline-block;margin-right:5px;flex-shrink:0"></span>${name}</span>`
+    ).join('');
+
+    const svg = buildSheetSVG(sheet, sheetW, sheetH, si);
+    svg.setAttribute('width','100%');
+    svg.setAttribute('height','100%');
+    const svgStr = new XMLSerializer().serializeToString(svg);
+
+    pagesHTML += `
+    <div class="page">
+      <div class="hdr">
+        <div class="brand"><span class="saw">SAW</span><span class="man">MAN</span></div>
+        <div class="spec">${sheetW} × ${sheetH} mm &nbsp;·&nbsp; kerf ${state.kerf}mm &nbsp;·&nbsp; 사용률 ${yieldPct}% &nbsp;·&nbsp; 부재 ${sheet.placed.length}개</div>
+        <div class="sheetnum">SHEET ${si+1}<span style="color:#5C5C60;font-size:11pt"> / ${activeSheets.length}</span><br><span style="font-size:8pt;color:#5C5C60;font-weight:400">${today}</span></div>
+      </div>
+      <div class="divider"></div>
+      <div class="canvas">${svgStr}</div>
+      <div class="divider"></div>
+      <div class="footer">
+        <div class="hint">① → ② → ③ 순서대로 절단 &nbsp;·&nbsp; 세로 립컷(같은 컬럼) 먼저 → 위에서 아래로 크로스컷</div>
+        <div class="legend">${legendHTML}</div>
+      </div>
+    </div>`;
+  });
+
+  const html = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>SAWMAN 재단도면 ${today}</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#0B0B0C;font-family:'Archivo',sans-serif;}
+.page{
+  width:297mm;height:210mm;
+  padding:9mm 11mm;
+  background:#0B0B0C;
+  display:flex;flex-direction:column;gap:3mm;
+  page-break-after:always;
+  overflow:hidden;
+}
+.hdr{display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:6mm;}
+.brand{display:flex;align-items:baseline;flex-shrink:0;}
+.saw{color:#ECECE9;font-size:20pt;font-weight:800;letter-spacing:0.02em;}
+.man{color:#D9A441;font-size:20pt;font-weight:800;letter-spacing:0.02em;}
+.spec{flex:1;font-family:'JetBrains Mono',monospace;font-size:8pt;color:#8E8E92;line-height:1.7;}
+.sheetnum{text-align:right;font-size:14pt;font-weight:700;color:#D9A441;font-family:'Archivo',sans-serif;line-height:1.4;white-space:nowrap;}
+.divider{height:0.4mm;background:#2C2C30;flex-shrink:0;}
+.canvas{
+  flex:1;min-height:0;
+  background:#1A1A1C;
+  border-radius:3mm;
+  border:0.4mm solid #3A3A3E;
+  overflow:hidden;
+  display:flex;align-items:stretch;
+}
+.canvas svg{display:block;width:100%;height:100%;}
+.footer{flex-shrink:0;display:flex;flex-direction:column;gap:2mm;}
+.hint{font-family:'JetBrains Mono',monospace;font-size:8pt;color:#8E8E92;}
+.legend{display:flex;flex-wrap:wrap;gap:3mm 6mm;}
+.p-chip{display:flex;align-items:center;font-family:'JetBrains Mono',monospace;font-size:8pt;color:#8E8E92;}
+@media print{
+  @page{size:A4 landscape;margin:0;}
+  body{background:#0B0B0C;}
+  .page{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+}
+</style>
+</head>
+<body>
+${pagesHTML}
+<script>
+window.onload = function(){
+  document.fonts.ready.then(function(){
+    setTimeout(function(){ window.print(); }, 500);
+  });
+};
+<\/script>
+</body>
+</html>`;
+
+  // Blob URL로 새 탭 열기 — 팝업 차단 없이 동작
+  const blob = new Blob([html], {type:'text/html;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.target = '_blank';
+  a.click();
+  setTimeout(()=> URL.revokeObjectURL(url), 10000);
+  showToast('새 탭에서 인쇄창 → PDF로 저장 선택하세요');
+};
+
+document.getElementById('new-plan-btn').onclick = ()=>{
+  state.parts = [];
+  state.lastResult = null;
+  renderParts();
+  addPart();
+  updateSummary();
+  backToInput();
+  showToast('새 도면을 시작합니다');
+};
+
+/* ============== INIT WITH SAMPLE PART ============== */
+addPart();
+</script>
+</body>
+</html>
